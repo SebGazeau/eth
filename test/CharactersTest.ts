@@ -51,6 +51,7 @@ contract('Characters', (accounts: Truffle.Accounts) => {
 				expectEvent(personage, 'Transfer',{from: account.zero, to: account.first, tokenId: new BN(0)})
 			});
 			it('should verify choice', async () => {
+				console.log('leafChoice',leafChoice)
 				console.log('proofChoice',proofChoice)
 				expect(await CharactersInstance.madeIsChoice('left',proofChoice, new BN(0))).to.equal(true);
 			});
