@@ -71,7 +71,6 @@ contract Characters is ERC721URIStorage {
 	 * @return id_ id of the new token
 	 */
 	function deadPersonage(uint256 _tokenId, string memory _tokenURI) external isOwner(_tokenId) isReferential(_tokenId) returns (uint256 id_){
-		require(_exists(_tokenId), "character doesn't exist");
 		id_ = mintPersonage(msg.sender, false, true,_tokenURI, characters[_tokenId].name, characters[_tokenId].characteristics, characters[_tokenId].proofOfChoices);
 		_burn(_tokenId);
 	}
@@ -82,7 +81,6 @@ contract Characters is ERC721URIStorage {
 	 * @return id_ id of the new token
 	 */
 	function endOfStoryPersonage(uint256 _tokenId, string memory _tokenURI) external isOwner(_tokenId) isReferential(_tokenId) returns (uint256 id_) {
-		require(_exists(_tokenId), "character doesn't exist");
 		require(!characters[_tokenId].isTombstone, "this is a tombstone");
 		id_ = mintPersonage(msg.sender, false, false,_tokenURI, characters[_tokenId].name, characters[_tokenId].characteristics, characters[_tokenId].proofOfChoices);
 		_burn(_tokenId);
@@ -93,7 +91,6 @@ contract Characters is ERC721URIStorage {
 	 * @param _proofOfChoices merkle root for the proof of choice
 	 */
 	function setProofOfChoices(uint256 _tokenId,bytes32 _proofOfChoices) external isOwner(_tokenId) isReferential(_tokenId){
-		require(_exists(_tokenId), "character doesn't exist");
 		characters[_tokenId].proofOfChoices = _proofOfChoices;
 	}
 	/**
@@ -102,7 +99,6 @@ contract Characters is ERC721URIStorage {
 	 * @param _characteristics merkle root for the characteristics
 	 */
 	function setCharacteristics(uint256 _tokenId,bytes32 _characteristics) external isOwner(_tokenId) isReferential(_tokenId){
-		require(_exists(_tokenId), "character doesn't exist");
 		characters[_tokenId].characteristics = _characteristics;
 	}	
 	/**
