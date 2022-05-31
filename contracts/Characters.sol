@@ -25,10 +25,6 @@ contract Characters is ERC721URIStorage {
 	Personage[] characters;
 	constructor(string memory _name, string memory _symbol) ERC721(_name, _symbol) {}
 	/**
-	 * @dev Emit when a character is modified upon death
-	 */
-	event PersonageDead(uint _tokenId, Personage _character);
-	/**
 	 * @dev modifier to check if caller is an onwer
 	 */ 
 	modifier isOwner(uint _tokenId) {
@@ -72,13 +68,14 @@ contract Characters is ERC721URIStorage {
 	 * @dev mint a tombstone when a characters is dead 
 	 * @param _tokenId token id
 	 * @param _tokenURI Uniform Resource Identifier
+	 * @return id_ id of the new token
 	 */
-	function deadPersonage(uint256 _tokenId, string memory _tokenURI) external isOwner(_tokenId) isReferential(_tokenId) {
-		_setTokenURI(_tokenId, _tokenURI);
-		characters[_tokenId].isReferential = false;
-		characters[_tokenId].isTombstone = true;
-
-		emit PersonageDead(_tokenId, characters[_tokenId]);
+	function deadPersonage(uint256 _tokenId, string memory _tokenURI) external isOwner(_tokenId) isReferential(_tokenId)  returns (uint256 id_) {
+		tokenIds.decrement();
+		_burn(_tokenId);
+		id_ = mintPersonage(msg.sender, false, true,_tokenURI, characters[_tokenId].name, characters[_tokenId].characteristics, characters[_tokenId].proofOfChoices);
+		characters[_tokenId] = characters[characters.length - 1];
+		characters.pop();
 	}
 	/**
 	 * @dev mint the character when a story is finished
@@ -88,8 +85,11 @@ contract Characters is ERC721URIStorage {
 	 */
 	function endOfStoryPersonage(uint256 _tokenId, string memory _tokenURI) external isOwner(_tokenId) isReferential(_tokenId) returns (uint256 id_) {
 		require(!characters[_tokenId].isTombstone, "this is a tombstone");
-		id_ = mintPersonage(msg.sender, false, false,_tokenURI, characters[_tokenId].name, characters[_tokenId].characteristics, characters[_tokenId].proofOfChoices);
+		tokenIds.decrement();
 		_burn(_tokenId);
+		id_ = mintPersonage(msg.sender, false, false,_tokenURI, characters[_tokenId].name, characters[_tokenId].characteristics, characters[_tokenId].proofOfChoices);
+		characters[_tokenId] = characters[characters.length - 1];
+		characters.pop();
 	}
 	/**
 	 * @dev add choices for a character
@@ -184,4 +184,5 @@ contract Characters is ERC721URIStorage {
 	function _verify(bytes32 _leaf,bytes32 _merkleRoot,bytes32[] memory _proof) internal pure returns(bool) {
 		return MerkleProof.verify(_proof, _merkleRoot, _leaf);
 	}
+
 }
