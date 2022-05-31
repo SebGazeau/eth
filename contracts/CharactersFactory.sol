@@ -47,19 +47,17 @@ contract CharactersFactory {
 			require(listCharactersByPlayer[msg.sender][i] == _fromCollection || listCharactersByPlayer[msg.sender][i] == _toCollection, "Transfer is not possible");
 		}
 
-		Characters fromCollection = Characters(_fromCollection);
-		Characters toCollection = Characters(_toCollection);
-		Characters.Personage memory characterFrom = fromCollection.getPersonage(_tokenId);
-		Characters.Personage[] memory charactersTo = toCollection.getAllPersonages();
+		Characters.Personage memory characterFrom = Characters(_fromCollection).getPersonage(_tokenId);
+		Characters.Personage[] memory charactersTo = Characters(_toCollection).getAllPersonages();
 		require(!characterFrom.isReferential && !characterFrom.isTombstone, "character can't be transferred");
 		
 		if(charactersTo.length > 0){
-			newTokenId_ = toCollection.newAfterDeath(fromCollection.tokenURI(_tokenId), characterFrom.name, characterFrom.characteristics, characterFrom.proofOfChoices);
+			newTokenId_ = Characters(_fromCollection).newAfterDeath(Characters(_fromCollection).tokenURI(_tokenId), characterFrom.name, characterFrom.characteristics, characterFrom.proofOfChoices);
 		}else{
-			newTokenId_ = toCollection.firstPersonage(fromCollection.tokenURI(_tokenId), characterFrom.name, characterFrom.characteristics, characterFrom.proofOfChoices);
+			newTokenId_ = Characters(_toCollection).firstPersonage(Characters(_toCollection).tokenURI(_tokenId), characterFrom.name, characterFrom.characteristics, characterFrom.proofOfChoices);
 		}
 
-		toCollection.safeTransferFrom(address(this), msg.sender, newTokenId_);
-		fromCollection.burnForTranfer(_tokenId);
+		Characters(_toCollection).safeTransferFrom(address(this), msg.sender, newTokenId_);
+		Characters(_fromCollection).burnForTranfer(_tokenId);
 	}
 }
