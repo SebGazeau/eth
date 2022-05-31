@@ -7,6 +7,11 @@ import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
 
+/**
+ * @title Characters
+ * @author Sebastien Gazeau
+ * @dev Story character manager
+ */
 contract Characters is ERC721URIStorage {
 	using Counters for Counters.Counter;
 	Counters.Counter private tokenIds;
@@ -100,6 +105,14 @@ contract Characters is ERC721URIStorage {
 		require(_exists(_tokenId), "character doesn't exist");
 		characters[_tokenId].characteristics = _characteristics;
 	}	
+	/**
+	 * @dev burning a token when transferred
+	 * @param _tokenId token id
+	 */
+	function burnForTranfer(uint256 _tokenId) external{
+		require(_isApprovedOrOwner(msg.sender, _tokenId), "managing not approved");
+		_burn(_tokenId);
+	}
 	/**
 	 * @dev Getter for a character
 	 * @param _tokenId id of a character
