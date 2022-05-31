@@ -25,6 +25,10 @@ contract Characters is ERC721URIStorage {
 	Personage[] characters;
 	constructor(string memory _name, string memory _symbol) ERC721(_name, _symbol) {}
 	/**
+	 * @dev Emit when a character is modified upon death
+	 */
+	event PersonageDead(uint _tokenId, Personage _character);
+	/**
 	 * @dev modifier to check if caller is an onwer
 	 */ 
 	modifier isOwner(uint _tokenId) {
@@ -74,6 +78,7 @@ contract Characters is ERC721URIStorage {
 		characters[_tokenId].isReferential = false;
 		characters[_tokenId].isTombstone = true;
 
+		emit PersonageDead(_tokenId, characters[_tokenId]);
 	}
 	/**
 	 * @dev mint the character when a story is finished
