@@ -68,11 +68,12 @@ contract Characters is ERC721URIStorage {
 	 * @dev mint a tombstone when a characters is dead 
 	 * @param _tokenId token id
 	 * @param _tokenURI Uniform Resource Identifier
-	 * @return id_ id of the new token
 	 */
-	function deadPersonage(uint256 _tokenId, string memory _tokenURI) external isOwner(_tokenId) isReferential(_tokenId) returns (uint256 id_){
-		id_ = mintPersonage(msg.sender, false, true,_tokenURI, characters[_tokenId].name, characters[_tokenId].characteristics, characters[_tokenId].proofOfChoices);
-		_burn(_tokenId);
+	function deadPersonage(uint256 _tokenId, string memory _tokenURI) external isOwner(_tokenId) isReferential(_tokenId) {
+		_setTokenURI(_tokenId, _tokenURI);
+		characters[_tokenId].isReferential = false;
+		characters[_tokenId].isTombstone = true;
+
 	}
 	/**
 	 * @dev mint the character when a story is finished
