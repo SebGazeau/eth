@@ -2,8 +2,8 @@
 
 pragma solidity 0.8.13;
 
-import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
-import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721URIStorageUpgradeable.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
 
@@ -12,7 +12,7 @@ import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
  * @author Sebastien Gazeau
  * @dev Story character manager
  */
-contract Characters is ERC721URIStorage {
+contract Characters is ERC721URIStorageUpgradeable {
 	using Counters for Counters.Counter;
 	Counters.Counter private tokenIds;
 	struct Personage {
@@ -23,7 +23,10 @@ contract Characters is ERC721URIStorage {
 		bytes32 proofOfChoices;
 	}
 	Personage[] characters;
-	constructor(string memory _name, string memory _symbol) ERC721(_name, _symbol) {}
+	// constructor(string memory _name, string memory _symbol) ERC721(_name, _symbol) {}
+	function initialize(string memory _name, string memory _symbol) initializer public {
+		__ERC721_init(_name, _symbol);
+	}
 	/**
 	 * @dev modifier to check if caller is an onwer
 	 */ 
@@ -114,6 +117,7 @@ contract Characters is ERC721URIStorage {
 	function burnForTranfer(uint256 _tokenId) external{
 		require(_isApprovedOrOwner(msg.sender, _tokenId), "managing not approved");
 		_burn(_tokenId);
+		characters.pop();
 	}
 	/**
 	 * @dev Getter for a character

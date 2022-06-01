@@ -3,15 +3,20 @@
 pragma solidity 0.8.13;
 
 import "./Characters.sol";
-
+import "@openzeppelin/contracts/proxy/Clones.sol";
+import "@openzeppelin/contracts/token/ERC721/utils/ERC721Holder.sol";
 /**
  * @title CharactersFactory
  * @author Sebastien Gazeau
  * @dev Create and manage collections for each story
  */
-contract CharactersFactory {
+contract CharactersFactory is ERC721Holder {
 	mapping(address => address[]) private listCharactersByPlayer;
-	
+	address immutable charactersImplementation;
+
+    constructor() {
+        charactersImplementation = address(new Characters());
+    }
 	/**
 	 * @dev Emitted when a collection is created
 	 */
@@ -21,18 +26,20 @@ contract CharactersFactory {
 	 * @dev Create a new character's collection
 	 * @param _collectionName Name of the collection (story/volume)
 	 * @param _collectionName Symbol of the collection (story/volume)
-	 * @return collectionAddress_ Address of the collection
+	 * @return clone_ Address of the collection
 	 */
-	function createCharacters(string memory _collectionName, string memory _collectionSymbol) external payable returns (address collectionAddress_){
+	function createCharacters(string memory _collectionName, string memory _collectionSymbol) external payable returns (address clone_){
+		bytes32 salt = keccak256(abi.encodePacked(_collectionName));
 		if (listCharactersByPlayer[msg.sender].length > 0){
+			address predictDeterministicAddress = Clones.predictDeterministicAddress(charactersImplementation, salt);
 			for (uint i = 0; i < listCharactersByPlayer[msg.sender].length; i++){
-				require(keccak256(abi.encodePacked(Characters(listCharactersByPlayer[msg.sender][i]).name())) != keccak256(abi.encodePacked(_collectionName)), "A collection already exists");
+				require(listCharactersByPlayer[msg.sender][i] != predictDeterministicAddress, "A collection already exists");
 			}
 		}
-		bytes32 _salt = keccak256(abi.encodePacked(_collectionName));
-		collectionAddress_ = address(new Characters{salt: _salt}(_collectionName, _collectionSymbol));
-		listCharactersByPlayer[msg.sender].push(collectionAddress_);
-		emit CharactersCreated(_collectionName, collectionAddress_, msg.sender);
+		clone_ = Clones.cloneDeterministic(charactersImplementation, salt);
+		Characters(clone_).initialize(_collectionName, _collectionSymbol);
+		listCharactersByPlayer[msg.sender].push(clone_);
+		emit CharactersCreated(_collectionName, clone_, msg.sender);
 	}
 
 	/**
@@ -52,9 +59,9 @@ contract CharactersFactory {
 		require(!characterFrom.isReferential && !characterFrom.isTombstone, "character can't be transferred");
 		
 		if(charactersTo.length > 0){
-			newTokenId_ = Characters(_fromCollection).newAfterDeath(Characters(_fromCollection).tokenURI(_tokenId), characterFrom.name, characterFrom.characteristics, characterFrom.proofOfChoices);
+			newTokenId_ = Characters(_toCollection).newAfterDeath(Characters(_fromCollection).tokenURI(_tokenId), characterFrom.name, characterFrom.characteristics, characterFrom.proofOfChoices);
 		}else{
-			newTokenId_ = Characters(_toCollection).firstPersonage(Characters(_toCollection).tokenURI(_tokenId), characterFrom.name, characterFrom.characteristics, characterFrom.proofOfChoices);
+			newTokenId_ = Characters(_toCollection).firstPersonage(Characters(_fromCollection).tokenURI(_tokenId), characterFrom.name, characterFrom.characteristics, characterFrom.proofOfChoices);
 		}
 
 		Characters(_toCollection).safeTransferFrom(address(this), msg.sender, newTokenId_);
